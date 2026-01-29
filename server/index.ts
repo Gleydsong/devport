@@ -2,6 +2,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { isAppError } from "./errors";
+import { setupAuth } from "./auth";
 
 const app = express();
 const httpServer = createServer(app);
@@ -20,7 +22,9 @@ app.use(
   }),
 );
 
-app.use(express.urlencoded({ extended: false }));
+  app.use(express.urlencoded({ extended: false }));
+
+  setupAuth(app);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
@@ -63,11 +67,14 @@ app.use((req, res, next) => {
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const status = isAppError(err)
+      ? err.statusCode
+      : err.status || err.statusCode || 500;
+    const message = err?.message || "Internal Server Error";
+    const details = isAppError(err) ? err.details : undefined;
 
-    res.status(status).json({ message });
-    throw err;
+    log(`error ${status} ${message}`, "api");
+    res.status(status).json({ message, details });
   });
 
   // importantly only setup vite in development and after

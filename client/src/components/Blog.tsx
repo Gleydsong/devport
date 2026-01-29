@@ -1,33 +1,41 @@
 import { motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import type { Post } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Heart, MessageCircle, Repeat, Share2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FileText } from "lucide-react";
 
-const tweets = [
-  {
-    id: 1,
-    content: "Just shipped a new feature using WebGL and React Three Fiber. The performance gains are incredible when you optimize your meshes correctly. 🚀 #webdev #3d",
-    date: "2h ago",
-    likes: 124,
-    retweets: 18,
-  },
-  {
-    id: 2,
-    content: "Unpopular opinion: TypeScript configs are actually fun once you understand what every flag does. It's like configuring your own spaceship cockpit.",
-    date: "5h ago",
-    likes: 892,
-    retweets: 145,
-  },
-  {
-    id: 3,
-    content: "Designing for the future means letting go of the constraints of the past. Glassmorphism isn't just a trend, it's a way to add depth to flat interfaces.",
-    date: "1d ago",
-    likes: 456,
-    retweets: 56,
-  },
-];
+type ApiPost = Omit<Post, "createdAt" | "publishedAt"> & {
+  createdAt: string;
+  publishedAt: string | null;
+};
+
+function formatPostDate(post: ApiPost) {
+  const rawDate = post.publishedAt ?? post.createdAt;
+  const date = new Date(rawDate);
+  if (Number.isNaN(date.getTime())) return "Draft";
+
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
 
 export default function Blog() {
+  const {
+    data: postsResponse,
+    isLoading,
+    error,
+  } = useQuery<{ data: ApiPost[] }>({
+    queryKey: ["/api/posts"],
+  });
+
+  const posts = postsResponse?.data ?? [];
+
   return (
     <section id="blog" className="py-24 bg-black/20">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -36,50 +44,88 @@ export default function Blog() {
           <div className="text-primary font-mono text-sm">@dev_future</div>
         </div>
 
-        <div className="space-y-6">
-          {tweets.map((tweet, index) => (
-            <motion.div
-              key={tweet.id}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-card/30 backdrop-blur border-white/10 hover:bg-card/50 transition-colors">
+        {error ? (
+          <Alert variant="destructive">
+            <AlertTitle>Failed to load posts</AlertTitle>
+            <AlertDescription>
+              We could not reach the blog API. Try again in a moment.
+            </AlertDescription>
+          </Alert>
+        ) : isLoading ? (
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <Card
+                key={`post-skeleton-${index}`}
+                className="bg-card/30 backdrop-blur border-white/10"
+              >
                 <CardHeader className="flex flex-row items-start gap-4 pb-2">
-                  <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>DF</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-foreground">Dev Future</span>
-                      <span className="text-muted-foreground text-sm">@dev_future</span>
-                      <span className="text-muted-foreground text-sm">· {tweet.date}</span>
-                    </div>
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex flex-col gap-2 w-full">
+                    <Skeleton className="h-4 w-40" />
+                    <Skeleton className="h-4 w-24" />
                   </div>
                 </CardHeader>
                 <CardContent className="pl-[4.5rem] pt-0">
-                  <p className="text-lg mb-4 leading-relaxed">{tweet.content}</p>
-                  <div className="flex items-center justify-between text-muted-foreground max-w-md">
-                    <button className="hover:text-primary transition-colors flex items-center gap-1 text-sm">
-                      <MessageCircle className="h-4 w-4" /> 12
-                    </button>
-                    <button className="hover:text-green-500 transition-colors flex items-center gap-1 text-sm">
-                      <Repeat className="h-4 w-4" /> {tweet.retweets}
-                    </button>
-                    <button className="hover:text-pink-500 transition-colors flex items-center gap-1 text-sm">
-                      <Heart className="h-4 w-4" /> {tweet.likes}
-                    </button>
-                    <button className="hover:text-blue-500 transition-colors flex items-center gap-1 text-sm">
-                      <Share2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6 mt-2" />
+                  <Skeleton className="h-4 w-2/3 mt-2" />
                 </CardContent>
               </Card>
-            </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : posts.length === 0 ? (
+          <Empty className="border-white/10 bg-card/40">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FileText className="h-5 w-5" />
+              </EmptyMedia>
+              <EmptyTitle>No posts yet</EmptyTitle>
+              <EmptyDescription>
+                Publish your first post and it will appear here.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              Drafts will stay hidden until you set a published date.
+            </EmptyContent>
+          </Empty>
+        ) : (
+          <div className="space-y-6">
+            {posts.map((post, index) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <Card className="bg-card/30 backdrop-blur border-white/10 hover:bg-card/50 transition-colors">
+                  <CardHeader className="flex flex-row items-start gap-4 pb-2">
+                    <Avatar>
+                      <AvatarImage src="https://github.com/shadcn.png" />
+                      <AvatarFallback>DF</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-foreground">Dev Future</span>
+                        <span className="text-muted-foreground text-sm">@dev_future</span>
+                        <span className="text-muted-foreground text-sm">· {formatPostDate(post)}</span>
+                      </div>
+                      <span className="text-lg font-semibold mt-1">{post.title}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pl-[4.5rem] pt-0">
+                    <p className="text-lg mb-2 leading-relaxed line-clamp-3">
+                      {post.excerpt}
+                    </p>
+                    <button className="text-sm text-primary hover:text-primary/80 transition-colors">
+                      Read more
+                    </button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

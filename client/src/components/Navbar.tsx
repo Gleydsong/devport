@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Menu, X, Github, Twitter, Linkedin } from "lucide-react";
+import { Menu, X, Github, Twitter } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -8,28 +8,31 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const links = [
-    { name: "Projects", href: "#projects" },
-    { name: "Blog", href: "#blog" },
-    { name: "Contact", href: "#contact" },
+    { name: "Projects", href: "/projects" },
+    { name: "Blog", href: "/blog" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="text-xl font-bold tracking-tighter font-display bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400">
+        <Link
+          href="/"
+          className="text-xl font-bold tracking-tighter font-display bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-400"
+        >
           DevFolio
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           {links.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               {link.name}
-            </a>
+            </Link>
           ))}
           <div className="flex items-center gap-2 border-l border-white/10 pl-4 ml-4">
              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">
@@ -58,14 +61,14 @@ export default function Navbar() {
           className="md:hidden absolute top-16 left-0 w-full bg-background border-b border-white/10 p-4 flex flex-col gap-4"
         >
           {links.map((link) => (
-            <a
+            <Link
               key={link.name}
               href={link.href}
               className="text-lg font-medium text-foreground hover:text-primary"
               onClick={() => setIsOpen(false)}
             >
               {link.name}
-            </a>
+            </Link>
           ))}
         </motion.div>
       )}
