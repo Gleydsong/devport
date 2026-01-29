@@ -11,8 +11,17 @@ import {
 import { AppError } from "../errors";
 
 const projectIdSchema = z.string().uuid();
+const optionalUrl = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().url().max(2048).optional()
+);
 const createProjectSchema = insertProjectSchema.extend({
-  tags: z.array(z.string()).optional().default([]),
+  title: z.string().trim().min(3).max(120),
+  description: z.string().trim().min(10).max(500),
+  tags: z.array(z.string().trim().min(1).max(24)).max(12).optional().default([]),
+  imageUrl: optionalUrl,
+  liveUrl: optionalUrl,
+  repoUrl: optionalUrl,
 });
 const updateProjectSchema = createProjectSchema.partial();
 

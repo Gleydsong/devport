@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Terminal, Code2, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import heroBg from "@assets/generated_images/dark_futuristic_abstract_hero_background_with_neon_cyber_grid_and_glowing_nodes..png";
 
 export default function Hero() {
@@ -60,32 +61,43 @@ export default function Hero() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Button size="lg" className="w-full sm:w-auto text-base h-12 px-8 bg-primary hover:bg-primary/90">
-              View Projects <ArrowRight className="ml-2 h-4 w-4" />
+            <Button
+              size="lg"
+              className="w-full sm:w-auto text-base h-12 px-8 bg-primary hover:bg-primary/90"
+              asChild
+            >
+              <Link href="/projects">
+                View Projects <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="w-full sm:w-auto text-base h-12 px-8 border-white/10 hover:bg-white/5">
-              Read Blog
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full sm:w-auto text-base h-12 px-8 border-white/10 hover:bg-white/5"
+              asChild
+            >
+              <Link href="/contact">Get In Touch</Link>
             </Button>
           </motion.div>
 
           <motion.div
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             transition={{ duration: 1, delay: 0.8 }}
-             className="mt-24 grid grid-cols-3 gap-8 max-w-2xl mx-auto text-muted-foreground/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            className="mt-20 grid grid-cols-3 gap-8 max-w-2xl mx-auto text-muted-foreground/50"
           >
-              <div className="flex flex-col items-center gap-2">
-                  <Terminal size={32} />
-                  <span className="text-sm uppercase tracking-widest">Backend</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                  <Code2 size={32} />
-                  <span className="text-sm uppercase tracking-widest">Frontend</span>
-              </div>
-              <div className="flex flex-col items-center gap-2">
-                  <Cpu size={32} />
-                  <span className="text-sm uppercase tracking-widest">Systems</span>
-              </div>
+            <div className="flex flex-col items-center gap-2">
+              <Terminal size={32} />
+              <span className="text-sm uppercase tracking-widest">Backend</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Code2 size={32} />
+              <span className="text-sm uppercase tracking-widest">Frontend</span>
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <Cpu size={32} />
+              <span className="text-sm uppercase tracking-widest">Systems</span>
+            </div>
           </motion.div>
         </div>
       </div>

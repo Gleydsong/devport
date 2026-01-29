@@ -11,7 +11,15 @@ import {
 import { AppError } from "../errors";
 
 const postIdSchema = z.string().uuid();
+const optionalUrl = z.preprocess(
+  (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+  z.string().url().max(2048).optional()
+);
 const createPostSchema = insertPostSchema.extend({
+  title: z.string().trim().min(3).max(140),
+  excerpt: z.string().trim().min(10).max(240),
+  content: z.string().trim().min(20).max(8000),
+  coverImage: optionalUrl,
   publishedAt: z.coerce.date().optional().nullable(),
 });
 const updatePostSchema = createPostSchema.partial();

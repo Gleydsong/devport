@@ -3,6 +3,8 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import memorystore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
+import { Pool } from "pg";
 import { validateUser, getUserById } from "./services/auth.service";
 
 declare global {
@@ -17,6 +19,21 @@ declare global {
 
 export function setupAuth(app: Express) {
   const MemoryStore = memorystore(session);
+  const PgStore = connectPgSimple(session);
+  const usePgStore = Boolean(process.env.DATABASE_URL);
+
+  const sessionStore = usePgStore
+    ? new PgStore({
+        pool: new Pool({
+          connectionString: process.env.DATABASE_URL,
+          ssl:
+            process.env.NODE_ENV === "production"
+              ? { rejectUnauthorized: false }
+              : undefined,
+        }),
+        createTableIfMissing: true,
+      })
+    : new MemoryStore({ checkPeriod: 86400000 });
 
   app.use(
     session({
@@ -29,7 +46,7 @@ export function setupAuth(app: Express) {
         secure: process.env.NODE_ENV === "production",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
-      store: new MemoryStore({ checkPeriod: 86400000 }),
+      store: sessionStore,
     })
   );
 

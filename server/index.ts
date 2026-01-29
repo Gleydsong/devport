@@ -4,6 +4,8 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { isAppError } from "./errors";
 import { setupAuth } from "./auth";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 const httpServer = createServer(app);
@@ -22,9 +24,35 @@ app.use(
   }),
 );
 
-  app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
 
-  setupAuth(app);
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+  : process.env.NODE_ENV === "production"
+    ? []
+    : [
+        "http://localhost:5000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+      ];
+
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+  })
+);
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api", apiLimiter);
+
+setupAuth(app);
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

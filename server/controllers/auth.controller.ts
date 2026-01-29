@@ -6,8 +6,13 @@ import { AppError } from "../errors";
 import { createUser } from "../services/auth.service";
 
 const registerSchema = insertUserSchema.extend({
-  username: z.string().min(3),
-  password: z.string().min(8),
+  username: z
+    .string()
+    .trim()
+    .min(3)
+    .max(32)
+    .regex(/^[a-zA-Z0-9_]+$/, "Use only letters, numbers, and underscores"),
+  password: z.string().min(8).max(72),
 });
 
 function sanitizeUser(user: { id: string; username: string }) {

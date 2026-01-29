@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+import SectionHeader from "@/components/SectionHeader";
 
 type ApiProject = Omit<Project, "createdAt"> & { createdAt: string };
 
@@ -26,10 +27,11 @@ export default function Portfolio() {
     <section id="projects" className="py-24 relative">
       <div className="container mx-auto px-4">
         <div className="mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold font-display mb-4">Selected Works</h2>
-          <p className="text-muted-foreground text-lg max-w-2xl">
-            A collection of projects exploring the intersection of design and technology.
-          </p>
+          <SectionHeader
+            eyebrow="Projects"
+            title="Selected Works"
+            subtitle="A collection of projects exploring the intersection of design and technology."
+          />
         </div>
 
         {error ? (

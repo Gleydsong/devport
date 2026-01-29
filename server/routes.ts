@@ -23,6 +23,8 @@ import {
 } from "./controllers/auth.controller";
 import { asyncHandler } from "./utils/async-handler";
 import { requireAuth } from "./middleware/require-auth";
+import rateLimit from "express-rate-limit";
+import { authLogger } from "./middleware/auth-logger";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -30,9 +32,26 @@ export async function registerRoutes(
 ): Promise<Server> {
   const api = Router();
 
-  api.post("/auth/register", asyncHandler(registerController));
-  api.post("/auth/login", asyncHandler(loginController));
-  api.post("/auth/logout", asyncHandler(logoutController));
+  const authLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 5,
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  api.post(
+    "/auth/register",
+    authLimiter,
+    authLogger,
+    asyncHandler(registerController)
+  );
+  api.post(
+    "/auth/login",
+    authLimiter,
+    authLogger,
+    asyncHandler(loginController)
+  );
+  api.post("/auth/logout", authLogger, asyncHandler(logoutController));
   api.get("/auth/me", asyncHandler(meController));
 
   api.get("/projects", asyncHandler(listProjectsController));
